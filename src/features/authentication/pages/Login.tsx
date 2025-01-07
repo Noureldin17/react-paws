@@ -53,7 +53,7 @@ const Login = () => {
 
     if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password)) {
       errors.password = "Password must be at least 6 characters long and contain both letters and numbers.";
-      isValid = false;
+      // isValid = false;
     }
 
     if (!isLogin && password !== confirmPassword) {

@@ -3,6 +3,9 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { useProfile } from "../../../hooks/useProfile";
 import tempProfile from "../../../assets/temp-profile.jpeg";
+import OrdersTab from "../components/OrdersTab";
+import ListingsTab from "../components/ListingsTab";
+import RequestsTab from "../components/RequestsTab";
 
 // Define the custom theme
 const theme = createTheme({
@@ -34,7 +37,7 @@ const theme = createTheme({
 });
 
 const Profile: React.FC = () => {
-  const { data: userProfile, isLoading } = useProfile();
+  const { data: userProfile, isLoading} = useProfile();
   const [activeTab, setActiveTab] = useState(0);
 
   if (isLoading) return <div>Loading...</div>;
@@ -46,7 +49,11 @@ const Profile: React.FC = () => {
         <div className="profile-header flex items-center gap-8">
           {/* Profile Image */}
           <img
-            src={userProfile?.profileImage ? userProfile.profileImage.data : tempProfile}
+            src={
+              userProfile?.profileImage
+                ? userProfile.profileImage.data
+                : tempProfile
+            }
             alt="Profile"
             className="rounded-full w-24 h-24 object-cover"
           />
@@ -71,45 +78,33 @@ const Profile: React.FC = () => {
             <Tab label="Dashboards" />
           </Tabs>
 
-          {/* Display content based on selected tab */}
           {activeTab === 0 && (
             <Box sx={{ padding: "1rem" }}>
-              <Typography variant="h6">Order History</Typography>
-              {/* Render Orders */}
+              <Typography variant="h6" gutterBottom>
+                Order History
+              </Typography>
               {userProfile?.orders.length > 0 ? (
-                userProfile.orders.map((order) => (
-                  <div key={order.orderId}>
-                    <h3>Order ID: {order.orderId}</h3>
-                    <p>Status: {order.status}</p>
-                    <p>Total Amount: {order.totalAmount}</p>
-                    <div>
-                      <h4>Order Items:</h4>
-                      {order.orderItems.map((item, index) => (
-                        <div key={index}>
-                          <p>{item.product.name} x {item.quantity}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
+                <OrdersTab orders={userProfile.orders} />
               ) : (
-                <p>No orders yet.</p>
+                <Typography>No orders yet.</Typography>
               )}
             </Box>
           )}
+
           {activeTab === 1 && (
             <Box sx={{ padding: "1rem" }}>
               <Typography variant="h6">Adoption Listings</Typography>
               {/* Render Adoption Listings */}
-              {userProfile?.adoptionListings.length > 0 ? (
-                userProfile.adoptionListings.map((listing) => (
-                  <div key={listing.listingId}>
-                    <h3>{listing.name}</h3>
-                    <p>{listing.breed}</p>
-                    <p>Status: {listing.status}</p>
-                  </div>
-                ))
-              ) : (
+              {userProfile?.adoptionListings.length > 0 ? <ListingsTab listings={userProfile?.adoptionListings}/> : (
+                <p>No adoption listings yet.</p>
+              )}
+            </Box>
+          )}
+          {activeTab === 2 && (
+            <Box sx={{ padding: "1rem" }}>
+              <Typography variant="h6">Adoption Requests</Typography>
+              {/* Render Adoption Listings */}
+              {userProfile?.adoptionRequests.length > 0 ? <RequestsTab requests={userProfile?.adoptionRequests}/> : (
                 <p>No adoption listings yet.</p>
               )}
             </Box>

@@ -83,7 +83,7 @@ export interface AdoptionListing {
   images: ImageResponse[]; // Array of image URLs
 }
 export interface AdoptionListing {
-  name: string | null;
+  petName: string | null;
   listingId: number;
   user: User;
   petType: PetType;
@@ -116,7 +116,12 @@ export interface Order {
   orderDate: Date;
   status: "PENDING" | "DELIVERED";
   totalAmount: number;
-  orderItems: Product[];
+  orderItems: OrderItem[];
+}
+export interface OrderItem {
+  product: Product;
+  quantity: number;
+  price: number;
 }
 
 export interface AdoptionRequest {

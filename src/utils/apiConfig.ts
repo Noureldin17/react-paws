@@ -10,11 +10,14 @@ export const endpointMap: Record<string, Record<string, boolean>> = {
     POST: {
       "signup": false,
       "signin": false,
-      "pet-types": true, // Admin-only functionality still requires authentication
+      "pet-types": true, 
       "categories": true,
       "products": true,
       "adoption": true,
+      "adoption/create": true,
       "adoption-request": true,
+      "adoption-request/reject": true,
+      "adoption-request/approve": true,
     },
     DELETE: {
       "pet-types": true,

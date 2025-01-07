@@ -10,6 +10,6 @@ export const useProfile = () => {
   return useQuery<UserProfile>({
     queryKey:["userProfile"], 
     queryFn: fetchProfileInfo,
-    staleTime: 36000000
+    // staleTime: 36000000
   });
 };

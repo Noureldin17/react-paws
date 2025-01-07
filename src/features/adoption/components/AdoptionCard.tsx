@@ -22,7 +22,7 @@ const AdoptionCard: React.FC<AdoptionCardProps> = ({ listing }) => {
         {/* Pet Image */}
         {listing.images[0] ? (
           <img
-            src={`data:image/jpeg;base64,${listing.images[0]}`} // Assuming primaryImageId holds the image data
+            src={`data:image/jpeg;base64,${listing.images[0].data}`} // Assuming primaryImageId holds the image data
             // alt={listing.name}
             className="h-32 w-full object-cover rounded"
           />
@@ -36,7 +36,7 @@ const AdoptionCard: React.FC<AdoptionCardProps> = ({ listing }) => {
             className="font-semibold text-sm text-gray-800 truncate"
             style={{ maxHeight: "1.5em", overflow: "hidden", textOverflow: "ellipsis" }}
           >
-            {listing.name}
+            {listing.petName}
           </h3>
           <p
             className="text-gray-600 text-xs truncate"

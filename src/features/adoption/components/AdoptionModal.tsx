@@ -22,7 +22,7 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ listing, onClose }) => {
           {/* Main Image */}
           <div className="mb-4 w-full">
             <img
-              src={`data:image/jpeg;base64,${listing.images[0] || ""}`}
+              src={`data:image/jpeg;base64,${listing.images[currentImageIndex].data || ""}`}
             //   alt={listing.petName}
               className="h-64 w-full object-cover rounded-lg"
             />
@@ -60,13 +60,13 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ listing, onClose }) => {
           </button>
 
           {/* Pet Details */}
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold text-lg">{listing.name || "Tugboe"}</h3>
-            <span className="bg-lightOrange text-primary text-xs font-semibold py-1 px-3 rounded-full capitalize shadow-md">
+          <div className="flex items-center">
+            <h3 className="font-bold text-lg">{listing.petName || "Unnamed"}</h3>
+            <span className="bg-lightOrange ml-2 text-primary text-xs font-semibold py-1 px-3 rounded-full capitalize shadow-md">
               {listing.petType.name}
             </span>
           </div>
-          <p className="text-gray-700 text-sm mt-2">{listing.description}</p>
+          {/* <p className="text-gray-700 text-sm mt-2">{listing.description}</p> */}
 
           {/* Additional Info */}
           <div className="flex justify-between sm:w-[60%] w-[80%]">
