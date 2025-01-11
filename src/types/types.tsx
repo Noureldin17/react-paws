@@ -67,21 +67,22 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  role: string;
   profileImage: string | null;
 }
 
-export interface AdoptionListing {
-  name: string | null;
-  listingId: number;
-  user: User;
-  petType: PetType;
-  breed: string;
-  age: number | null;
-  description: string | null;
-  listedDate: string; // ISO 8601 format
-  status: "AVAILABLE" | "PENDING" | "ADOPTED"; // Enum for status
-  images: ImageResponse[]; // Array of image URLs
-}
+// export interface AdoptionListing {
+//   name: string | null;
+//   listingId: number;
+//   user: User;
+//   petType: PetType;
+//   breed: string;
+//   age: number | null;
+//   description: string | null;
+//   listedDate: string; // ISO 8601 format
+//   status: "AVAILABLE" | "PENDING" | "ADOPTED"; // Enum for status
+//   images: ImageResponse[]; // Array of image URLs
+// }
 export interface AdoptionListing {
   petName: string | null;
   listingId: number;

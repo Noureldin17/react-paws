@@ -16,6 +16,7 @@ export const endpointMap: Record<string, Record<string, boolean>> = {
       "adoption": true,
       "adoption/create": true,
       "adoption-request": true,
+      "adoption-request/create": true,
       "adoption-request/reject": true,
       "adoption-request/approve": true,
     },

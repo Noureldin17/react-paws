@@ -16,43 +16,46 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { usePetTypes } from "../../../hooks/usePetTypes";
-import { PetType } from "../../../types/types";
+import { useProductCategories } from "../../../hooks/useProductCategories";
+import { PetType, Category } from '../../../types/types';
+import { useAddProduct } from "../../../hooks/useAddProduct";
 
-interface AdoptionListingDTO {
-  petName: string;
-  petType: { id: string };
-  breed: string;
-  age: string;
+interface AddProductDTO {
+  name: string;
   description: string;
-  status: "AVAILABLE";
+  price: number;
+  category: { categoryId: string };
+  petType: { id: string };
+  stockQuantity: number;
   images: [];
 }
 
-interface AddAdoptionListingModalProps {
+interface AddProductModalProps {
   open: boolean;
   onClose: () => void;
-  onListingAdded: () => void;
+  onProductAdded: () => void;
 }
 
-const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
+const AddProductModal: React.FC<AddProductModalProps> = ({
   open,
   onClose,
-  onListingAdded,
+  onProductAdded,
 }) => {
-  const [formData, setFormData] = useState<AdoptionListingDTO>({
-    petName: "",
-    petType: { id: "" },
-    breed: "",
-    age: "",
+  const [formData, setFormData] = useState<AddProductDTO>({
+    name: "",
     description: "",
-    status: "AVAILABLE",
-    images: [], // Always empty for the DTO
+    price: 0,
+    category: { categoryId: "" },
+    petType: { id: "" },
+    stockQuantity: 0,
+    images: [],
   });
   const [images, setImages] = useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const petTypes = usePetTypes();
+  const productCategories = useProductCategories();
+  const { mutate: addProduct, isLoading: isSubmitting } = useAddProduct(); // Use the custom hook
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -60,15 +63,19 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "price" || name === "stockQuantity" ? Number(value) : value,
     }));
   };
 
-  const handlePetTypeChange = (e: React.ChangeEvent<{ value: unknown }>) => {
-    const petTypeId = e.target.value as string;
+  const handleDropdownChange = (
+    field: "petType" | "category",
+    value: string
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      petType: { id: petTypeId },
+      [field]: field === "category"
+        ? { categoryId: value }
+        : { id: value },
     }));
   };
 
@@ -82,7 +89,7 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!images.length) {
@@ -90,49 +97,36 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     setErrorMessage(null);
 
     const formDataToSubmit = new FormData();
     formDataToSubmit.append(
-      "adoptionListing",
+      "product",
       new Blob([JSON.stringify(formData)], { type: "application/json" })
     );
     images.forEach((image) => {
       formDataToSubmit.append("imageFiles", image);
     });
 
-    try {
-      const response = await fetch("http://localhost:8080/api/v1/adoption/create", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
-        },
-        method: "POST",
-        body: formDataToSubmit,
-      });
-
-      if (response.ok) {
-        onListingAdded();
+    addProduct(formDataToSubmit, {
+      onSuccess: () => {
+        onProductAdded();
         onClose();
         setFormData({
-          petName: "",
-          petType: { id: "" },
-          breed: "",
-          age: "",
+          name: "",
           description: "",
-          status: "AVAILABLE",
+          price: 0,
+          category: { categoryId: "" },
+          petType: { id: "" },
+          stockQuantity: 0,
           images: [],
         });
         setImages([]);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || "Failed to add listing. Please try again.");
-      }
-    } catch (error) {
-      setErrorMessage("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      onError: (error: any) => {
+        setErrorMessage(error.message || "An error occurred. Please try again.");
+      },
+    });
   };
 
   return (
@@ -153,29 +147,44 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
           flexDirection: "column",
           gap: 3,
           "&::-webkit-scrollbar": {
-            display: "none", // Hides the scrollbar in WebKit browsers
+            display: "none",
           },
-          "-ms-overflow-style": "none", // Hides scrollbar in IE and Edge
-          "scrollbar-width": "none", // Hides scrollbar in Firefox
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
         }}
       >
-        <Typography variant="h5">Add Adoption Listing</Typography>
+        <Typography variant="h5">Add Product</Typography>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         <form onSubmit={handleSubmit}>
           <TextField
             label="Name"
-            name="petName"
-            value={formData.petName}
+            name="name"
+            value={formData.name}
             onChange={handleInputChange}
             fullWidth
             required
           />
           <FormControl fullWidth required sx={{ marginTop: 2 }}>
+            <InputLabel id="category-label">Category</InputLabel>
+            <Select
+              labelId="category-label"
+              value={formData.category.categoryId}
+              onChange={(e) => handleDropdownChange("category", e.target.value as string)}
+              label="Category"
+            >
+              {productCategories.data?.map((category: Category) => (
+                <MenuItem key={category.categoryId} value={category.categoryId}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth required sx={{ marginTop: 2 }}>
             <InputLabel id="pet-type-label">Pet Type</InputLabel>
             <Select
               labelId="pet-type-label"
               value={formData.petType.id}
-              onChange={handlePetTypeChange}
+              onChange={(e) => handleDropdownChange("petType", e.target.value as string)}
               label="Pet Type"
             >
               {petTypes.data?.map((type: PetType) => (
@@ -186,25 +195,27 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
             </Select>
           </FormControl>
           <TextField
-          sx={{ marginTop: 2 }}
-            label="Breed"
-            name="breed"
-            value={formData.breed}
-            onChange={handleInputChange}
-            fullWidth
-          />
-          <TextField
-          sx={{ marginTop: 2 }}
-            label="Age"
-            name="age"
+            sx={{ marginTop: 2 }}
+            label="Price"
+            name="price"
             type="number"
-            value={formData.age}
+            value={formData.price}
             onChange={handleInputChange}
             fullWidth
             required
           />
           <TextField
-          sx={{ marginTop: 2 }}
+            sx={{ marginTop: 2 }}
+            label="Stock Quantity"
+            name="stockQuantity"
+            type="number"
+            value={formData.stockQuantity}
+            onChange={handleInputChange}
+            fullWidth
+            required
+          />
+          <TextField
+            sx={{ marginTop: 2 }}
             label="Description"
             name="description"
             value={formData.description}
@@ -212,8 +223,13 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
             fullWidth
             multiline
             rows={3}
+            required
           />
-          <Button variant="contained" component="label" sx={{ marginTop: 2 , color: "white", borderRadius:"32px"}}>
+          <Button
+            variant="contained"
+            component="label"
+            sx={{ marginTop: 2, color: "white", borderRadius: "32px" }}
+          >
             Upload Images
             <input type="file" multiple hidden onChange={handleFileChange} />
           </Button>
@@ -257,17 +273,17 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
             </Grid>
           )}
           <Box sx={{ marginTop: 3, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            <Button sx={{borderRadius:"32px"}} variant="outlined" onClick={onClose}>
+            <Button sx={{ borderRadius: "32px" }} variant="outlined" onClick={onClose}>
               Cancel
             </Button>
             <Button
-            sx={{color: "white", borderRadius:"32px"}}
+              sx={{ color: "white", borderRadius: "32px" }}
               type="submit"
               variant="contained"
               color="primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? <CircularProgress size={24} /> : "Add Listing"}
+              {isSubmitting ? <CircularProgress size={24} /> : "Add Product"}
             </Button>
           </Box>
         </form>
@@ -276,4 +292,4 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
   );
 };
 
-export default AddAdoptionListingModal;
+export default AddProductModal;

@@ -12,11 +12,19 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useQueryClient } from "@tanstack/react-query";
 import AddAdoptionListingModal from "./AddAdoptionListingModal";
 import { useRejectRequest } from "../../../hooks/useRejectRequest";
 import { useApproveRequest } from "../../../hooks/useApproveRequest";
+import { useDeleteListing } from "../../../hooks/useDeleteListing";
 import { AdoptionListing } from "../../../types/types";
 import tempPetImage from "../../../assets/temp-profile.jpeg"; // Fallback image
 
@@ -27,10 +35,15 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
     type: "success" | "error";
   } | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    listingId: number | null;
+  }>({ open: false, listingId: null });
 
   const queryClient = useQueryClient();
   const { mutate: rejectRequest } = useRejectRequest();
   const { mutate: approveRequest } = useApproveRequest();
+  const { mutate: deleteListing } = useDeleteListing();
 
   const handleApprove = (requestId: number) => {
     setLoadingRequestId(requestId);
@@ -40,7 +53,7 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
         setLoadingRequestId(null);
         queryClient.invalidateQueries({ queryKey: ["userProfile"] });
       },
-      onError: (error: any) => {
+      onError: () => {
         setSnackbar({ message: "Failed to approve request.", type: "error" });
         setLoadingRequestId(null);
       },
@@ -55,9 +68,28 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
         setLoadingRequestId(null);
         queryClient.invalidateQueries({ queryKey: ["userProfile"] });
       },
-      onError: (error: any) => {
+      onError: () => {
         setSnackbar({ message: "Failed to reject request.", type: "error" });
         setLoadingRequestId(null);
+      },
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteModal.listingId === null) return;
+
+    setLoadingRequestId(deleteModal.listingId);
+    deleteListing(deleteModal.listingId, {
+      onSuccess: () => {
+        setSnackbar({ message: "Listing deleted successfully!", type: "success" });
+        setLoadingRequestId(null);
+        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+        setDeleteModal({ open: false, listingId: null });
+      },
+      onError: () => {
+        setSnackbar({ message: "Failed to delete listing.", type: "error" });
+        setLoadingRequestId(null);
+        setDeleteModal({ open: false, listingId: null });
       },
     });
   };
@@ -77,16 +109,27 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <Button variant="contained" color="primary" onClick={() => setIsAddModalOpen(true)}>
-        Add Adoption Listing
-      </Button>
+       <button
+            className="mt-6 w-[12rem] py-2 text-sm rounded-full text-white font-semibold bg-primary hover:bg-primary-dark"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            Add Listing
+       </button>
 
       {listings.map((listing) => (
         <Card key={listing.listingId} sx={{ borderRadius: "8px", boxShadow: 2 }}>
           <CardContent>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Typography variant="h6">{listing.name || "Unnamed Pet"}</Typography>
-              <Chip label={listing.status} color={getStatusColor(listing.status)} />
+              <Typography variant="h6">{listing.petName || "Unnamed Pet"}</Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Chip label={listing.status} color={getStatusColor(listing.status)} />
+                <IconButton
+                  color="error"
+                  onClick={() => setDeleteModal({ open: true, listingId: listing.listingId })}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
             </Box>
             <Typography variant="body2">Breed: {listing.breed}</Typography>
             <Typography variant="body2">Age: {listing.age} years</Typography>
@@ -113,12 +156,18 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
                       <CircularProgress size={24} />
                     ) : (
                       <>
-                        <Button variant="contained" color="error" onClick={() => handleReject(request.requestId)}>
+                        <button
+                          className="text-white rounded-full bg-red-500 w-24 hover:bg-red-600 text-sm px-4 py-2 active:scale-95"
+                          onClick={() => handleReject(request.requestId)}
+                          >
                           Reject
-                        </Button>
-                        <Button variant="contained" color="success" onClick={() => handleApprove(request.requestId)}>
+                        </button>
+                        <button
+                          className="text-white rounded-full bg-green-500 w-24 hover:bg-green-600 text-sm px-4 py-2 active:scale-95"
+                          onClick={() => handleApprove(request.requestId)}
+                        >
                           Approve
-                        </Button>
+                        </button>
                       </>
                     )}
                   </Box>
@@ -129,14 +178,38 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
         </Card>
       ))}
 
-      {/* Add Listing Modal */}
       <AddAdoptionListingModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onListingAdded={() => queryClient.invalidateQueries({ queryKey: ["userProfile"] })}
       />
 
-      {/* Snackbar for feedback */}
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModal.open} onClose={() => setDeleteModal({ open: false, listingId: null })}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this listing? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteModal({ open: false, listingId: null })} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            disabled={loadingRequestId === deleteModal.listingId}
+          >
+            {loadingRequestId === deleteModal.listingId ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Delete"
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {snackbar && (
         <Snackbar open autoHideDuration={3000} onClose={() => setSnackbar(null)}>
           <Alert severity={snackbar.type} onClose={() => setSnackbar(null)}>

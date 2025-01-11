@@ -6,6 +6,7 @@ import tempProfile from "../../../assets/temp-profile.jpeg";
 import OrdersTab from "../components/OrdersTab";
 import ListingsTab from "../components/ListingsTab";
 import RequestsTab from "../components/RequestsTab";
+import Dashboard from "../components/Dashboard";
 
 // Define the custom theme
 const theme = createTheme({
@@ -75,7 +76,7 @@ const Profile: React.FC = () => {
             <Tab label="My Orders" />
             <Tab label="My Listings" />
             <Tab label="My Requests" />
-            <Tab label="Dashboards" />
+            {JSON.parse(localStorage.getItem("authState")!).user.role == "ADMIN" && <Tab label="Dashboards" />}
           </Tabs>
 
           {activeTab === 0 && (
@@ -109,6 +110,7 @@ const Profile: React.FC = () => {
               )}
             </Box>
           )}
+          {activeTab === 3 && <Dashboard/>}
         </Box>
       </div>
     </ThemeProvider>
