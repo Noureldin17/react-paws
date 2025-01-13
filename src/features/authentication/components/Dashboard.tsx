@@ -220,6 +220,7 @@ const Dashboard: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
+          sx={{ marginTop: 2, color: "white", borderRadius: "32px" }}
           startIcon={<AddIcon />}
           onClick={() => {
             if (selectedCard === "Products") setIsAddModalOpen(true);

@@ -151,6 +151,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           display: "flex",
           flexDirection: "column",
           gap: 3,
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
         }}
       >
         <Typography variant="h5">Edit Product</Typography>

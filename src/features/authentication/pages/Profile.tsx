@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
+import { Tabs, Tab, Box, Typography, Button } from "@mui/material";
 import { useProfile } from "../../../hooks/useProfile";
 import tempProfile from "../../../assets/temp-profile.jpeg";
 import OrdersTab from "../components/OrdersTab";
 import ListingsTab from "../components/ListingsTab";
 import RequestsTab from "../components/RequestsTab";
 import Dashboard from "../components/Dashboard";
+import AddAdoptionListingModal from "../components/AddAdoptionListingModal";
+import { useQueryClient } from "@tanstack/react-query";
+import AddIcon from "@mui/icons-material/Add";
 
 // Define the custom theme
 const theme = createTheme({
@@ -38,7 +41,9 @@ const theme = createTheme({
 });
 
 const Profile: React.FC = () => {
-  const { data: userProfile, isLoading} = useProfile();
+  const { data: userProfile, isLoading } = useProfile();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(0);
 
   if (isLoading) return <div>Loading...</div>;
@@ -76,7 +81,8 @@ const Profile: React.FC = () => {
             <Tab label="My Orders" />
             <Tab label="My Listings" />
             <Tab label="My Requests" />
-            {JSON.parse(localStorage.getItem("authState")!).user.role == "ADMIN" && <Tab label="Dashboards" />}
+            {JSON.parse(localStorage.getItem("authState")!).user.role ==
+              "ADMIN" && <Tab label="Dashboards" />}
           </Tabs>
 
           {activeTab === 0 && (
@@ -94,23 +100,47 @@ const Profile: React.FC = () => {
 
           {activeTab === 1 && (
             <Box sx={{ padding: "1rem" }}>
-              <Typography variant="h6">Adoption Listings</Typography>
+              <div className="flex justify-between items-center mb-4">
+                <Typography variant="h6">Adoption Listings</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{ marginTop: 0, color: "white", borderRadius: "32px" }}
+                  startIcon={<AddIcon />}
+                  onClick={() => {
+                    setIsAddModalOpen(true);
+                  }}
+                >
+                  Add Listing
+                </Button>
+              </div>
               {/* Render Adoption Listings */}
-              {userProfile?.adoptionListings.length > 0 ? <ListingsTab listings={userProfile?.adoptionListings}/> : (
+              {userProfile?.adoptionListings.length > 0 ? (
+                <ListingsTab listings={userProfile?.adoptionListings} />
+              ) : (
                 <p>No adoption listings yet.</p>
               )}
             </Box>
           )}
+          <AddAdoptionListingModal
+            open={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onListingAdded={() =>
+              queryClient.invalidateQueries({ queryKey: ["userProfile"] })
+            }
+          />
           {activeTab === 2 && (
             <Box sx={{ padding: "1rem" }}>
               <Typography variant="h6">Adoption Requests</Typography>
               {/* Render Adoption Listings */}
-              {userProfile?.adoptionRequests.length > 0 ? <RequestsTab requests={userProfile?.adoptionRequests}/> : (
+              {userProfile?.adoptionRequests.length > 0 ? (
+                <RequestsTab requests={userProfile?.adoptionRequests} />
+              ) : (
                 <p>No adoption listings yet.</p>
               )}
             </Box>
           )}
-          {activeTab === 3 && <Dashboard/>}
+          {activeTab === 3 && <Dashboard />}
         </Box>
       </div>
     </ThemeProvider>

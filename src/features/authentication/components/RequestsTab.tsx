@@ -48,7 +48,7 @@ const RequestsTab: React.FC<{ requests: AdoptionRequest[] }> = ({ requests }) =>
               }}
             >
               <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
-                {request.adoptionListing.name || "Unnamed Pet"}
+                {request.adoptionListing.petName || "Unnamed Pet"}
               </Typography>
               <Chip
                 label={request.status}

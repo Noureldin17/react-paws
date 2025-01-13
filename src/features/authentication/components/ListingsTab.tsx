@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useQueryClient } from "@tanstack/react-query";
-import AddAdoptionListingModal from "./AddAdoptionListingModal";
 import { useRejectRequest } from "../../../hooks/useRejectRequest";
 import { useApproveRequest } from "../../../hooks/useApproveRequest";
 import { useDeleteListing } from "../../../hooks/useDeleteListing";
@@ -34,7 +33,6 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
     message: string;
     type: "success" | "error";
   } | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     listingId: number | null;
@@ -109,12 +107,6 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-       <button
-            className="mt-6 w-[12rem] py-2 text-sm rounded-full text-white font-semibold bg-primary hover:bg-primary-dark"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Add Listing
-       </button>
 
       {listings.map((listing) => (
         <Card key={listing.listingId} sx={{ borderRadius: "8px", boxShadow: 2 }}>
@@ -148,7 +140,7 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
                     style={{ width: 50, height: 50, borderRadius: "50%", marginRight: 8 }}
                   />
                   <Box sx={{ flexGrow: 1 }}>
-                    <Typography>{request.user.firstName}</Typography>
+                    <Typography>{request.user.firstName + " " + request.user.lastName}</Typography>
                     <Typography variant="body2">{request.user.email}</Typography>
                   </Box>
                   <Box sx={{ display: "flex", gap: 1 }}>
@@ -178,12 +170,6 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
         </Card>
       ))}
 
-      <AddAdoptionListingModal
-        open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onListingAdded={() => queryClient.invalidateQueries({ queryKey: ["userProfile"] })}
-      />
-
       {/* Delete Confirmation Modal */}
       <Dialog open={deleteModal.open} onClose={() => setDeleteModal({ open: false, listingId: null })}>
         <DialogTitle>Confirm Delete</DialogTitle>
@@ -209,7 +195,7 @@ const ListingsTab: React.FC<{ listings: AdoptionListing[] }> = ({ listings }) =>
           </Button>
         </DialogActions>
       </Dialog>
-
+  
       {snackbar && (
         <Snackbar open autoHideDuration={3000} onClose={() => setSnackbar(null)}>
           <Alert severity={snackbar.type} onClose={() => setSnackbar(null)}>
