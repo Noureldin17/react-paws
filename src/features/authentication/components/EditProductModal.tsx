@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -17,45 +17,60 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { usePetTypes } from "../../../hooks/usePetTypes";
 import { useProductCategories } from "../../../hooks/useProductCategories";
-import { PetType, Category } from '../../../types/types';
-import { useAddProduct } from "../../../hooks/useAddProduct";
+import { PetType, Category, ImageResponse } from "../../../types/types";
+import { useUpdateProduct } from "../../../hooks/useUpdateProduct";
 
-interface AddProductDTO {
+interface EditProductDTO {
+  productId: number;
   name: string;
   description: string;
   price: number;
   category: { categoryId: string };
   petType: { id: string };
   stockQuantity: number;
-  images: [];
+  images: ImageResponse[];
 }
 
-interface AddProductModalProps {
+interface EditProductModalProps {
   open: boolean;
   onClose: () => void;
-  onProductAdded: () => void;
+  product: EditProductDTO; // Existing product data
+  onProductUpdated: () => void;
 }
 
-const AddProductModal: React.FC<AddProductModalProps> = ({
+const EditProductModal: React.FC<EditProductModalProps> = ({
   open,
   onClose,
-  onProductAdded,
+  product,
+  onProductUpdated,
 }) => {
-  const [formData, setFormData] = useState<AddProductDTO>({
-    name: "",
-    description: "",
-    price: 0,
-    category: { categoryId: "" },
-    petType: { id: "" },
-    stockQuantity: 0,
-    images: [],
-  });
+  const [formData, setFormData] = useState<EditProductDTO>(product);
   const [images, setImages] = useState<File[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const petTypes = usePetTypes();
   const productCategories = useProductCategories();
-  const { mutate: addProduct, isPending: isSubmitting } = useAddProduct(); // Use the custom hook
+  const { mutate: editProduct, isPending: isSubmitting } = useUpdateProduct();
+
+  useEffect(() => {
+    // Initialize images state with existing product images
+    const initialImages = product.images.map((img) => {
+        // Convert base64 data to a binary array
+        const byteCharacters = atob(img.data);
+        const byteArray = new Uint8Array(byteCharacters.length);
+      
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+        }
+      
+        // Create a File object
+        return new File([byteArray], `Image - ${img.imageId}`);
+      });
+      
+      // Set the images
+      setImages(initialImages);
+      setFormData({...product, images:[]});
+  }, [product]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -108,20 +123,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       formDataToSubmit.append("imageFiles", image);
     });
 
-    addProduct(formDataToSubmit, {
+    editProduct({formData: formDataToSubmit, productId: product.productId}, {
       onSuccess: () => {
-        onProductAdded();
+        onProductUpdated();
         onClose();
-        setFormData({
-          name: "",
-          description: "",
-          price: 0,
-          category: { categoryId: "" },
-          petType: { id: "" },
-          stockQuantity: 0,
-          images: [],
-        });
-        setImages([]);
       },
       onError: (error: Error) => {
         setErrorMessage(error.message || "An error occurred. Please try again.");
@@ -146,14 +151,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
           display: "flex",
           flexDirection: "column",
           gap: 3,
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-          "-ms-overflow-style": "none",
-          "scrollbar-width": "none",
         }}
       >
-        <Typography variant="h5">Add Product</Typography>
+        <Typography variant="h5">Edit Product</Typography>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         <form onSubmit={handleSubmit}>
           <TextField
@@ -283,7 +283,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
               color="primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? <CircularProgress size={24} /> : "Add Product"}
+              {isSubmitting ? <CircularProgress size={24} /> : "Update Product"}
             </Button>
           </Box>
         </form>
@@ -292,4 +292,4 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   );
 };
 
-export default AddProductModal;
+export default EditProductModal;

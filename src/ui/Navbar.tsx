@@ -97,23 +97,25 @@ const Navbar: React.FC = () => {
               </div>
 
               {dropdownOpen && (
-                <ul className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg py-2 text-gray-700 z-50">
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    <NavLink to="/profile">Profile</NavLink>
-                  </li>
-                  {user?.isAdmin && (
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <NavLink to="/dashboards">Dashboards</NavLink>
-                    </li>
-                  )}
-                  <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </li>
-                </ul>
-              )}
+  <ul className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg py-2 text-gray-700 z-50">
+    <li className="hover:bg-gray-100 cursor-pointer">
+      <NavLink
+        className="block px-4 py-2 text-left"
+        onClick={() => setDropdownOpen(false)}
+        to="/profile"
+      >
+        Profile
+      </NavLink>
+    </li>
+    <li
+      className="hover:bg-gray-100 cursor-pointer"
+      onClick={handleLogout}
+    >
+      <span className="block px-4 py-2 text-left">Logout</span>
+    </li>
+  </ul>
+)}
+
             </li>
           )}
         </ul>

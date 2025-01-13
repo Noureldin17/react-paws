@@ -13,6 +13,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  SelectChangeEvent,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { usePetTypes } from "../../../hooks/usePetTypes";
@@ -64,7 +65,7 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
     }));
   };
 
-  const handlePetTypeChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+  const handlePetTypeChange = (e: SelectChangeEvent<string>) => {
     const petTypeId = e.target.value as string;
     setFormData((prev) => ({
       ...prev,
@@ -130,6 +131,7 @@ const AddAdoptionListingModal: React.FC<AddAdoptionListingModalProps> = ({
       }
     } catch (error) {
       setErrorMessage("An error occurred. Please try again.");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }

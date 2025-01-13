@@ -39,10 +39,15 @@ export interface ProductFilters {
 export interface ApiResponse<T> {
   status: string;
   message: string;
-  response: { content: T };
+  response: ResponseContent<T>;
   last: boolean;
   number: number;
 }
+
+export interface ResponseContent<T> {
+  content: T
+};
+
 export interface CartItem {
   id: number; // Product ID
   name: string;
@@ -131,4 +136,14 @@ export interface AdoptionRequest {
   requestDate: Date;
   status: "PENDING" | "REJECTED" |"APPROVED";
   adoptionListing: AdoptionListing;
+}
+
+export interface ProductDTO {
+  name: string;
+  description: string;
+  price: number;
+  category: {categoryId: number};
+  petType: {id: string};
+  stockQuantity: number;
+  images: [];
 }
