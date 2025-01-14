@@ -128,7 +128,7 @@ const AdoptionModal: React.FC<AdoptionModalProps> = ({ listing, onClose }) => {
             </div>
             <div>
               <p className="font-semibold text-sm text-gray-600">
-                {listing.user?.firstName || "John Doe"}
+                {listing.user?.firstName + listing.user?.lastName || "John Doe"}
               </p>
               <p className="text-sm text-gray-600">{listing.user?.email}</p>
             </div>

@@ -97,7 +97,7 @@ const OrdersTab: React.FC<{ orders: Order[] }> = ({ orders }) => {
                   }}
                 >
                   <img
-                    src={tempProductImage}
+                    src={`data:image/jpeg;base64,${item.product.images[0]?.data}`}
                     alt={item.product.name}
                     style={{
                       width: "50px",
